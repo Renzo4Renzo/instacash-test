@@ -1,5 +1,5 @@
 /*
-  Refactoring is based in Strategy Design Pattern.
+  Refactoring is based in Strategy Design Pattern (https://refactoring.guru/design-patterns/strategy).
   Also, code complies the Open-Closed Principle, because if we add new types of items in the future, we only need to:
     1. Create a specific ConcreteStatregy for new type.
     2. In client class GildedRose, add a new condition at UpdateItems() method.
