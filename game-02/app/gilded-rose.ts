@@ -1,3 +1,11 @@
+/*
+  Refactoring is based in Strategy Design Pattern.
+  Also, code complies the Open-Closed Principle, because if we add new types of items in the future, we only need to:
+    1. Create a specific ConcreteStatregy for new type.
+    2. In client class GildedRose, add a new condition at UpdateItems() method.
+  Nothing else changes, reducing significantly the risk to add bugs.
+*/
+
 export class Item {
   name: string;
   sellIn: number;
@@ -10,8 +18,12 @@ export class Item {
   }
 }
 
-export class UpdateItem {
-  updateNormalItem(i: number, items: Array<Item>) {
+export interface UpdateStrategy {
+  updateItem(i: number, items: Array<Item>): void;
+}
+
+export class ConcreteStategyNormalItem implements UpdateStrategy {
+  updateItem(i: number, items: Item[]): void {
     if (items[i].quality > 0) {
       items[i].quality = items[i].quality - 1;
     }
@@ -20,8 +32,10 @@ export class UpdateItem {
       items[i].quality = items[i].quality - 1;
     }
   }
+}
 
-  updateAgedBrie(i: number, items: Array<Item>) {
+export class ConcreteStrategyAgedBrieItem implements UpdateStrategy {
+  updateItem(i: number, items: Item[]): void {
     if (items[i].quality < 50) {
       items[i].quality = items[i].quality + 1;
     }
@@ -30,8 +44,10 @@ export class UpdateItem {
       items[i].quality = items[i].quality + 1;
     }
   }
+}
 
-  updateBackstagePasses(i: number, items: Array<Item>) {
+export class ConcreteStrategyBackstagePassesItem implements UpdateStrategy {
+  updateItem(i: number, items: Item[]): void {
     if (items[i].quality < 50) {
       items[i].quality = items[i].quality + 1;
       if (items[i].sellIn < 11 && items[i].quality < 50) {
@@ -46,10 +62,14 @@ export class UpdateItem {
       items[i].quality = items[i].quality - items[i].quality;
     }
   }
+}
 
-  updateSulfuras() {}
+export class ConcreteStrategySulfurasItem implements UpdateStrategy {
+  updateItem(i: number, items: Item[]): void {}
+}
 
-  updateConjured(i: number, items: Array<Item>) {
+export class ConcreteStrategyConjuredItem implements UpdateStrategy {
+  updateItem(i: number, items: Item[]): void {
     if (items[i].quality > 0) {
       items[i].quality = items[i].quality - 2;
     }
@@ -60,71 +80,35 @@ export class UpdateItem {
   }
 }
 
+export class Context {
+  updateStategy!: UpdateStrategy;
+
+  setUpdateStrategy(updateStategy: UpdateStrategy) {
+    this.updateStategy = updateStategy;
+  }
+
+  executeUpdateStrategy(i: number, items: Item[]) {
+    return this.updateStategy.updateItem(i, items);
+  }
+}
+
 export class GildedRose {
   items: Array<Item>;
-  updateItem: UpdateItem = new UpdateItem();
 
-  constructor(items = [] as Array<Item>) {
+  constructor(items = [] as Array<Item>, private context: Context) {
     this.items = items;
   }
 
-  /* updateQuality() {
-      for (let i = 0; i < this.items.length; i++) {
-          if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-              if (this.items[i].quality > 0) {
-                  if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                      this.items[i].quality = this.items[i].quality - 1
-                  }
-              }
-          } else {
-              if (this.items[i].quality < 50) {
-                  this.items[i].quality = this.items[i].quality + 1
-                  if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-                      if (this.items[i].sellIn < 11) {
-                          if (this.items[i].quality < 50) {
-                              this.items[i].quality = this.items[i].quality + 1
-                          }
-                      }
-                      if (this.items[i].sellIn < 6) {
-                          if (this.items[i].quality < 50) {
-                              this.items[i].quality = this.items[i].quality + 1
-                          }
-                      }
-                  }
-              }
-          }
-          if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-              this.items[i].sellIn = this.items[i].sellIn - 1;
-          }
-          if (this.items[i].sellIn < 0) {
-              if (this.items[i].name != 'Aged Brie') {
-                  if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                      if (this.items[i].quality > 0) {
-                          if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                              this.items[i].quality = this.items[i].quality - 1
-                          }
-                      }
-                  } else {
-                      this.items[i].quality = this.items[i].quality - this.items[i].quality
-                  }
-              } else {
-                  if (this.items[i].quality < 50) {
-                      this.items[i].quality = this.items[i].quality + 1
-                  }
-              }
-          }
-      }
-      return this.items;
-  } */
-
-  updateQuality() {
+  updateItems() {
     for (let i = 0; i < this.items.length; i++) {
-      if (this.items[i].name == "Aged Brie") this.updateItem.updateAgedBrie(i, this.items);
+      if (this.items[i].name == "Aged Brie") this.context.setUpdateStrategy(new ConcreteStrategyAgedBrieItem());
       else if (this.items[i].name == "Backstage passes to a TAFKAL80ETC concert")
-        this.updateItem.updateBackstagePasses(i, this.items);
-      else if (this.items[i].name == "Sulfuras, Hand of Ragnaros") this.updateItem.updateSulfuras();
-      else if (this.items[i].name == "Conjured") this.updateItem.updateConjured(i, this.items);
-      else this.updateItem.updateNormalItem(i, this.items);
+        this.context.setUpdateStrategy(new ConcreteStrategyBackstagePassesItem());
+      else if (this.items[i].name == "Sulfuras, Hand of Ragnaros")
+        this.context.setUpdateStrategy(new ConcreteStrategySulfurasItem());
+      else if (this.items[i].name == "Conjured") this.context.setUpdateStrategy(new ConcreteStrategyConjuredItem());
+      else this.context.setUpdateStrategy(new ConcreteStategyNormalItem());
+      this.context.executeUpdateStrategy(i, this.items);
     }
     return this.items;
   }

@@ -1,29 +1,29 @@
-let array = [2, 5, 8, 13, 1, 0];
-let sum = 13;
+/*
+  getFirstSubset(array,sum) max operations is now equal to the Math Combination formula (https://byjus.com/combination-formula/):
+    n! / (n-r)! * r!
+  where:
+    n = amount of elements in array
+    r = size of the subset (in this case, always is 2).
+  For example, max operations for an array of 4 elements will be 6.
+*/
 
-function getFirstPossible(array, sum) {
-  let sumArray = [];
-  let found = false;
-  for (i = 0; i < array.length; i++) {
-    if (found) {
-      break;
-    } else {
-      for (j = 0; j < array.length; j++) {
-        if (array[i] == array[j]) {
-          continue;
-        } else if (array[i] + array[j] == sum) {
-          found = true;
-          sumArray[0] = array[i];
-          sumArray[1] = array[j];
-          console.log("Subset: [", sumArray[0], sumArray[1], "]");
-          break;
-        }
+let array = [2, 5, 8, 14, 0];
+let sum = 10;
+
+function getFirstSubset(array, sum) {
+  let count = 0;
+  for (i = 0; i < array.length - 1; i++) {
+    for (j = i + 1; j < array.length; j++) {
+      count++;
+      console.log(`Test ${count}: [ ${array[i]} ${array[j]} ]`);
+      if (array[i] + array[j] == sum) {
+        return (sumArray = [array[i], array[j]]);
       }
     }
   }
-  if (!found) {
-    console.log("Cannot find any subset for: ", sum);
-  }
+  return false;
 }
 
-getFirstPossible(array, sum);
+let subset = getFirstSubset(array, sum);
+if (subset) console.log("Subset: [", subset[0], subset[1], "]");
+else console.log("Subset not found!");
